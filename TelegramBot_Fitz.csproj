@@ -121,7 +121,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bot\BotService.cs" />
-    <Compile Include="Core\LoanCalculator.cs" />
+    <Compile Include="Core\FloatingCalculator.cs" />
+    <Compile Include="Core\FixedCalculator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
