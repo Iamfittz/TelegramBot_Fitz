@@ -1,6 +1,7 @@
 ﻿using System;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
@@ -37,10 +38,26 @@ namespace TelegramBot_Fitz.Bot
 
                 var userState = _userStates[chatId];
 
+                // Обработка команды /help
+                if (message.Text.StartsWith("/help"))
+                {
+                    await botClient.SendMessage(chatId, "This is your loan calculator bot! \n\n" +
+                                                        "To get started, please follow the steps. " +
+                                                        "1. Enter the loan amount. " +
+                                                        "2. Enter the loan duration. " +
+                                                        "3. Enter the interest rate. " +
+                                                        "The bot will calculate the total loan payment.");
+                    return;
+                }
+
                 // Начинаем или продолжаем диалог с пользователем
                 if (userState.Step == 0)
                 {
-                    await botClient.SendMessage(chatId, "Welcome to the loan calculator! Please enter the loan amount.");
+                    var inlineKeyboard = new InlineKeyboardMarkup(new[]
+                    {
+                        new [] { InlineKeyboardButton.WithCallbackData("Help", "/help") }
+                    });
+                    await botClient.SendMessage(chatId, "Welcome to the loan calculator! Please enter the loan amount.", replyMarkup: inlineKeyboard);
                     userState.Step = 1;
                 }
                 else if (userState.Step == 1)
