@@ -43,8 +43,8 @@ namespace TelegramBot_Fitz.Core
             decimal totalPayment = loanAmount + totalInterest;
 
 
-            Console.WriteLine($"\nThe total interest for {loanYears}: {totalInterest:F2} usd");
-            Console.WriteLine($"Total payment is {totalPayment:F2} usd");
+            Console.WriteLine($"\nThe total interest for {loanYears}: {totalInterest:F2} uah");
+            Console.WriteLine($"Total payment is {totalPayment:F2} uah, лох");
         }
     }
 }

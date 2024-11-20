@@ -9,18 +9,19 @@ namespace TelegramBot_Fitz
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Welcome to the loan calculator");
-
-            var loanCalculator = new LoanCalculator();
-            loanCalculator.Run();
-
+            Console.WriteLine("Bot is running...");
             // Запуск бота
-            string botToken = "7215305698:AAHAqk-owYiegTWajlofjb5Ny2EYaI4yM7I"; // Токен бота
-            var botService = new BotService(botToken);  // Используем класс BotService, который мы написали
+            string botToken = "7215305698:AAHAqk-owYiegTWajlofjb5Ny2EYaI4yM7I"; 
+            var botService = new BotService(botToken);  
             botService.Start();  // Запуск получения обновлений бота
 
-            Console.WriteLine("Bot is running...");
-            Console.ReadLine(); // Ждем завершения работы
+            
+            Console.ReadLine();
+            Console.WriteLine("Welcome to the loan calculator");
+
+           var loanCalculator = new LoanCalculator();
+            loanCalculator.Run();
+
         }
     }
 }
