@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Telegram.Bot;
+using TelegramBot_Fitz.Bot;
 using TelegramBot_Fitz.Core;
 
 namespace TelegramBot_Fitz
@@ -12,12 +9,18 @@ namespace TelegramBot_Fitz
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Welocme to the loan calculator");
+            Console.WriteLine("Welcome to the loan calculator");
 
             var loanCalculator = new LoanCalculator();
-
             loanCalculator.Run();
-        }
+
+            // Запуск бота
+            string botToken = "7215305698:AAHAqk-owYiegTWajlofjb5Ny2EYaI4yM7I"; // Токен бота
+            var botService = new BotService(botToken);  // Используем класс BotService, который мы написали
+            botService.Start();  // Запуск получения обновлений бота
+
+            Console.WriteLine("Bot is running...");
+            Console.ReadLine(); // Ждем завершения работы
         }
     }
-
+}
