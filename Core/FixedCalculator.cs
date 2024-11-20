@@ -6,11 +6,17 @@ using System.Threading.Tasks;
 
 namespace TelegramBot_Fitz.Core
 {
-    public class LoanCalculator
+    public class FixedRateLoanCalculator
     {
         public decimal CalculateInterest(decimal amount, int years, decimal rate)
         {
             return amount * (rate / 100) * years;
+        }
+        // Метод для расчёта полной суммы платежей для фиксированной ставки
+        public decimal CalculateTotalPayment(decimal loanAmount, int loanYears, decimal interestRate)
+        {
+            decimal totalInterest = loanAmount * (interestRate / 100) * loanYears; // Общий процент за срок
+            return loanAmount + totalInterest; // Сумма кредита + проценты
         }
 
         public void Run()
@@ -44,7 +50,7 @@ namespace TelegramBot_Fitz.Core
 
 
             Console.WriteLine($"\nThe total interest for {loanYears}: {totalInterest:F2} uah");
-            Console.WriteLine($"Total payment is {totalPayment:F2} uah, лох");
+            Console.WriteLine($"Total payment is {totalPayment:F2} uah");
         }
     }
 }
