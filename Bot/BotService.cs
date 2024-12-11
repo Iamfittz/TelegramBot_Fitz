@@ -13,13 +13,14 @@ namespace TelegramBot_Fitz.Bot
     {
         private readonly ITelegramBotClient _botClient;
         private readonly Dictionary<long, UserState> _userStates;
+        private readonly FixedRateLoanCalculator _fixedRateLoanCalculator;
 
         public BotService(string token)
         {
             _botClient = new TelegramBotClient(token);
             _userStates = new Dictionary<long, UserState>();
+            _fixedRateLoanCalculator = new FixedRateLoanCalculator();
         }
-
         public void Start()
         {
             _botClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync);
@@ -27,13 +28,10 @@ namespace TelegramBot_Fitz.Bot
 
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            // Извлекаем message или callbackQuery
             var message = update.Message;
             var callbackQuery = update.CallbackQuery;
 
-            // Получаем chatId из message или callbackQuery
             long chatId;
-
             if (message != null)
             {
                 chatId = message.Chat.Id;
@@ -44,21 +42,15 @@ namespace TelegramBot_Fitz.Bot
             }
             else
             {
-                // Если оба message и callbackQuery равны null, ничего не делаем
                 return;
             }
 
-            // Теперь chatId гарантированно не null, можем работать с ним
-
-            // Проверяем или создаем состояние пользователя
             var userState = EnsureUserState(chatId);
 
             if (message?.Text != null)
             {
-                // Если сообщение не пустое, выполняем логику для текста
                 var text = message.Text;
 
-                // Обработка команды /help
                 if (text.StartsWith("/help"))
                 {
                     await botClient.SendMessage(chatId, "This is your loan calculator bot! \n\n" +
@@ -70,10 +62,8 @@ namespace TelegramBot_Fitz.Bot
                     return;
                 }
 
-                // Начинаем или продолжаем диалог с пользователем
                 if (userState.Step == 0)
                 {
-                    // Предлагаем выбрать тип расчета
                     var inlineKeyboard = new InlineKeyboardMarkup(new[]
                     {
                         new [] { InlineKeyboardButton.WithCallbackData("Fixed Rate", "FixedRate") },
@@ -85,7 +75,6 @@ namespace TelegramBot_Fitz.Bot
                 }
                 else if (userState.Step == 1)
                 {
-                    // Если пользователь выбрал тип расчета
                     if (text.Equals("Fixed Rate", StringComparison.OrdinalIgnoreCase))
                     {
                         userState.CalculationType = CalculationType.FixedRate;
@@ -135,28 +124,19 @@ namespace TelegramBot_Fitz.Bot
                     {
                         userState.InterestRate = rate;
 
-                        // Выполняем расчет в зависимости от типа расчета
-                        decimal totalInterest;
-                        decimal totalPayment;
+                        var calculationResult = _fixedRateLoanCalculator.CalculateLoan(
+                            userState.LoanAmount,
+                            userState.LoanYears,
+                            userState.InterestRate,
+                            userState.CalculationType
+                        );
 
-                        if (userState.CalculationType == CalculationType.FixedRate)
-                        {
-                            totalInterest = userState.LoanAmount * (userState.InterestRate / 100) * userState.LoanYears;
-                            totalPayment = userState.LoanAmount + totalInterest;
-                        }
-                        else // FloatingRate
-                        {
-                            // Для плавающего процента можно применить другую логику
-                            totalInterest = userState.LoanAmount * (userState.InterestRate / 100) * userState.LoanYears * 1.1m; // например, +10% к процентной ставке для плавающего
-                            totalPayment = userState.LoanAmount + totalInterest;
-                        }
-
-                        var resultMessage = $"The total interest for {userState.LoanYears} years is: {totalInterest:F2} USD.\n" +
-                                            $"The total payment is: {totalPayment:F2} USD.";
+                        var resultMessage = _fixedRateLoanCalculator.FormatCalculationResult(
+                            calculationResult,
+                            userState.LoanYears
+                        );
 
                         await botClient.SendMessage(chatId, resultMessage);
-
-                        // Сбросить состояние пользователя
                         userState.Reset();
                     }
                     else
@@ -166,12 +146,10 @@ namespace TelegramBot_Fitz.Bot
                 }
             }
 
-            // Если callbackQuery не равен null, обрабатываем коллбэк
             if (callbackQuery != null)
             {
                 var callbackData = callbackQuery.Data;
 
-                // Обработка выбора типа расчета из callbackData
                 if (callbackData == "FixedRate")
                 {
                     userState.CalculationType = CalculationType.FixedRate;
@@ -200,33 +178,6 @@ namespace TelegramBot_Fitz.Bot
                 _userStates[chatId] = new UserState();
             }
             return _userStates[chatId];
-        }
-    }
-
-    public enum CalculationType
-    {
-        None,
-        FixedRate,
-        FloatingRate
-    }
-
-    // Класс для хранения состояния пользователя
-    public class UserState
-    {
-        public int Step { get; set; } = 0;  // Шаг диалога
-        public decimal LoanAmount { get; set; }
-        public int LoanYears { get; set; }
-        public decimal InterestRate { get; set; }
-        public CalculationType CalculationType { get; set; } = CalculationType.None; // Тип расчета (Fixed или Floating)
-
-        // Сбросить состояние
-        public void Reset()
-        {
-            Step = 0;
-            LoanAmount = 0;
-            LoanYears = 0;
-            InterestRate = 0;
-            CalculationType = CalculationType.None; // сбрасываем тип расчета
         }
     }
 }
