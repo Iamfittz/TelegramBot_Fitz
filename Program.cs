@@ -10,25 +10,23 @@ namespace TelegramBot_Fitz
     {
         static void Main(string[] args)
         {
-            // Настройка конфигурации для чтения из appsettings.json
+            // Setting up configuration to read from appsettings.json
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
                 .AddJsonFile("appsettings.json")
                 .Build();
 
-            // Получение токена из конфигурации
             string botToken = configuration["BotSettings:BotToken"];
 
             Console.WriteLine("Bot is running...");
 
-            // Запуск бота
             var botService = new BotService(botToken);
-            botService.Start();  // Запуск получения обновлений бота
+            botService.Start();  
 
             Console.ReadLine();
         }
 
-        // Метод для запуска расчета фиксированной ставки
+        // Method for starting the calculation of a fixed rate
         private static void RunFixedRateCalculator(decimal loanAmount, int loanYears, decimal interestRate)
         {
             Console.WriteLine("Running Fixed Rate Loan Calculator...");
@@ -37,7 +35,7 @@ namespace TelegramBot_Fitz
             Console.WriteLine($"Total payment for fixed rate: {totalPayment:F2} USD.");
         }
 
-        // Метод для запуска расчета плавающей ставки
+        // Method for starting the calculation of a flaoting rate
         private static void RunFloatingRateCalculator(decimal loanAmount, decimal firstRate, decimal secondRate)
         {
             Console.WriteLine("Running Floating Rate Loan Calculator...");
