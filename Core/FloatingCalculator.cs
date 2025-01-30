@@ -12,31 +12,23 @@ namespace TelegramBot_Fitz.Core
         public int TotalYears {  get; set; }
         public decimal FirstRate {  get; set; }
         public decimal SecondRate { get; set; }
-        //метод  для расчета по плавающей ставке
-        public decimal CalculateTotalPayment()
+        public decimal CalculateFirstPeriodInterest()
         {
-            int halfYersinMonth = 6; ;
-
-            // Рассчитываем для первого периода (6 месяцев)
-            decimal firstPeriodInterest = LoanAmount*(FirstRate/100)*(halfYersinMonth/12m);
-            decimal firstPeriodTotal = LoanAmount + firstPeriodInterest;
-
-            // Рассчитываем для второго периода (6 месяцев)
-
-            decimal secondPeriodInterest = LoanAmount * (SecondRate / 100) * (halfYersinMonth / 12m);
-            decimal secondPeriodTotal = LoanAmount + secondPeriodInterest;
-
-            // Общая сумма платежей
-            decimal totalPayment = firstPeriodTotal + secondPeriodTotal;
-            return totalPayment;
+            return LoanAmount*(FirstRate/100)*(6/12m);
         }
-        // Метод для вычисления общей суммы процентов по обоим периодам
+        public decimal CalculateSecondPeriodInterest()
+        {
+            return LoanAmount * (SecondRate / 100) * (6 / 12m);
+        }
 
         public decimal CalculateTotalInterest()
         {
-            decimal firstPeriodInterest = LoanAmount* (FirstRate/100)*(6/12m);
-            decimal secondPeriodInterest = LoanAmount * (SecondRate / 100) * (6 / 12m);
-            return firstPeriodInterest + secondPeriodInterest;
+            return CalculateFirstPeriodInterest() + CalculateSecondPeriodInterest();
+        }
+
+        public decimal CalculateTotalPayment()
+        {
+            return LoanAmount + CalculateTotalInterest();
         }
     }
 }
