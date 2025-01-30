@@ -14,12 +14,14 @@ namespace TelegramBot_Fitz.Bot
         private readonly ITelegramBotClient _botClient;
         private readonly Dictionary<long, UserState> _userStates;
         private readonly FixedRateLoanCalculator _fixedRateLoanCalculator;
+        private readonly FloatingRateLoanCalculator _floatingRateLoanCalculator;
 
         public BotService(string token)
         {
             _botClient = new TelegramBotClient(token);
             _userStates = new Dictionary<long, UserState>();
             _fixedRateLoanCalculator = new FixedRateLoanCalculator();
+            _floatingRateLoanCalculator = new FloatingRateLoanCalculator();
         }
         public void Start()
         {
@@ -110,7 +112,17 @@ namespace TelegramBot_Fitz.Bot
                     if (int.TryParse(text, out int loanYears) && loanYears > 0)
                     {
                         userState.LoanYears = loanYears;
-                        await botClient.SendMessage(chatId, "Please enter the interest rate (e.g., 4 for 4%).");
+
+                        if(userState.CalculationType == CalculationType.FixedRate)
+                        {
+                            await botClient.SendMessage(chatId, "Please enter the interest rate (e.g., 4 for 4%).");
+                        }
+                        else
+                        {
+                            await botClient.SendMessage(chatId,
+                                "You've entered a floating rate calculation.\n" +
+                                "Now please enter the interest rate for the first 6-month period:");
+                        }
                         userState.Step = 4;
                     }
                     else
@@ -122,27 +134,70 @@ namespace TelegramBot_Fitz.Bot
                 {
                     if (decimal.TryParse(text, out decimal rate) && rate > 0)
                     {
-                        userState.InterestRate = rate;
+                        userState.FirstRate = rate;
+                        string resultMessage;
 
-                        var calculationResult = _fixedRateLoanCalculator.CalculateLoan(
-                            userState.LoanAmount,
-                            userState.LoanYears,
-                            userState.InterestRate,
-                            userState.CalculationType
-                        );
+                        if (userState.CalculationType == CalculationType.FixedRate)
+                        {
+                            var calculationResult = _fixedRateLoanCalculator.CalculateLoan(
+                                userState.LoanAmount,
+                                userState.LoanYears,
+                                userState.FirstRate
+                            );
+                            resultMessage = _fixedRateLoanCalculator.FormatCalculationResult(
+                                calculationResult,
+                                userState.LoanYears
+                            );
+                        }
+                        else // FloatingRate
+                        {
+                            await botClient.SendMessage(chatId,
+                                $"First 6-month period rate is set to {rate}%.\n" +
+                                "Please enter the interest rate for the second 6-month period:");
+                            userState.Step = 5;
+                        }
 
-                        var resultMessage = _fixedRateLoanCalculator.FormatCalculationResult(
-                            calculationResult,
-                            userState.LoanYears
-                        );
-
-                        await botClient.SendMessage(chatId, resultMessage);
-                        userState.Reset();
+                        
                     }
                     else
                     {
-                        await botClient.SendMessage(chatId, "Please enter a valid interest rate.");
+                        var errorMessage = userState.CalculationType == CalculationType.FixedRate
+                        ? "Please enter a valid interest rate."
+                        : "Please enter a valid interest rate for the first 6-month period.";
+
+                        await botClient.SendMessage(chatId, errorMessage);
+
+                        //await botClient.SendMessage(chatId, "Please enter a valid interest rate.");
                     }
+                }
+                else if (userState.Step == 5)
+                {
+                    if(decimal.TryParse(text,out decimal rate)&& rate > 0)
+                    
+                        userState.SecondRate = rate;
+                    _floatingRateLoanCalculator.LoanAmount = userState.LoanAmount;
+                    _floatingRateLoanCalculator.TotalYears = userState.LoanYears;
+                    _floatingRateLoanCalculator.FirstRate = userState.FirstRate;
+                    _floatingRateLoanCalculator.SecondRate = userState.SecondRate;
+
+                    decimal totalInterest = _floatingRateLoanCalculator.CalculateTotalInterest();
+                    decimal totalPayment = _floatingRateLoanCalculator.CalculateTotalPayment();
+
+                    var resultMessage =
+                        $"Loan calculation with floating rate:\n" +
+                        $"First 6 months rate: {userState.FirstRate}%\n" +
+                        $"Second 6 months rate: {userState.SecondRate}%\n" +
+                        $"First period interest rate: {_floatingRateLoanCalculator.LoanAmount * (userState.FirstRate / 100) * (6 / 12m):F2} USD\n" +
+                        $"Second period interest rate: {_floatingRateLoanCalculator.LoanAmount * (userState.SecondRate / 100) * (6 / 12m):F2} USD\n" +
+                        $"Total interest: {totalInterest:F2} USD\n" +
+                        $"Total payment: {totalPayment:F2} USD";
+
+                    await botClient.SendMessage(chatId,resultMessage);
+                    userState.Reset();
+                }
+                else
+                {
+                    await botClient.SendMessage(chatId, "Please enter a valid interest rate for the second rate");
                 }
             }
 
