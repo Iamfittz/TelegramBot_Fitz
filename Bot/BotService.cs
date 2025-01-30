@@ -81,31 +81,71 @@ namespace TelegramBot_Fitz.Bot
 
         private async Task HandleCallbackQuery(long chatId, UserState state, string callbackData)
         {
-            switch (callbackData)
+            if (callbackData.StartsWith("SameRate_"))
             {
-                case "IRS_Fixed_Float":
-                    await _messageHandlers.ShowRateTypeSelection(chatId);
-                    state.Step = 1;
-                    break;
-                case "IRS_OIS":
-                    state.CalculationType = CalculationType.OIS;
+                int nextYear = int.Parse(callbackData.Split('_')[1]);
+                state.YearlyRates[nextYear - 1] = state.YearlyRates[nextYear - 2]; // Копируем предыдущую ставку
+                state.CurrentYear = nextYear;
+
+                if (nextYear < state.LoanYears)
+                {
+                    // Если есть еще годы, спрашиваем про следующий
+                    var keyboard = new InlineKeyboardMarkup(new[]
+                    {
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("Use same rate", $"SameRate_{nextYear + 1}"),
+                    InlineKeyboardButton.WithCallbackData("Enter new rate", $"NewRate_{nextYear + 1}")
+                }
+            });
+
                     await _botClient.SendMessage(chatId,
-                        "You've selected OIS (Overnight Index Swap).\n" +
-                        "Please enter the notional amount:");
-                    state.Step = 2;
-                    break;
-                case "FixedRate":
-                    state.CalculationType = CalculationType.FixedRate;
-                    await _botClient.SendMessage(chatId,
-                        "You selected Fixed Rate. Please enter the loan amount.");
-                    state.Step = 2;
-                    break;
-                case "FloatingRate":
-                    state.CalculationType = CalculationType.FloatingRate;
-                    await _botClient.SendMessage(chatId,
-                        "You selected Floating Rate. Please enter the loan amount.");
-                    state.Step = 2;
-                    break;
+                        $"Rate for year {nextYear} is set to {state.YearlyRates[nextYear - 1]}%.\n" +
+                        $"What about year {nextYear + 1}?",
+                        replyMarkup: keyboard);
+                }
+                else
+                {
+                    // Если это был последний год, делаем расчет
+                    await _calculationHandlers.HandleFixedRateCalculation(chatId, state);
+                }
+            }
+            else if (callbackData.StartsWith("NewRate_"))
+            {
+                int nextYear = int.Parse(callbackData.Split('_')[1]);
+                state.CurrentYear = nextYear;
+                await _botClient.SendMessage(chatId,
+                    $"Please enter the interest rate for year {nextYear} (e.g., 4 for 4%):");
+            }
+
+            else
+            {
+                switch (callbackData)
+                {
+                    case "IRS_Fixed_Float":
+                        await _messageHandlers.ShowRateTypeSelection(chatId);
+                        state.Step = 1;
+                        break;
+                    case "IRS_OIS":
+                        state.CalculationType = CalculationType.OIS;
+                        await _botClient.SendMessage(chatId,
+                            "You've selected OIS (Overnight Index Swap).\n" +
+                            "Please enter the notional amount:");
+                        state.Step = 2;
+                        break;
+                    case "FixedRate":
+                        state.CalculationType = CalculationType.FixedRate;
+                        await _botClient.SendMessage(chatId,
+                            "You selected Fixed Rate. Please enter the loan amount.");
+                        state.Step = 2;
+                        break;
+                    case "FloatingRate":
+                        state.CalculationType = CalculationType.FloatingRate;
+                        await _botClient.SendMessage(chatId,
+                            "You selected Floating Rate. Please enter the loan amount.");
+                        state.Step = 2;
+                        break;
+                }
             }
         }
 

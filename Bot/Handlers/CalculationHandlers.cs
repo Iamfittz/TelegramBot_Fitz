@@ -31,12 +31,11 @@ namespace TelegramBot_Fitz.Bot
         {
             var calculationResult = _fixedCalculator.CalculateLoan(
                 state.LoanAmount,
-                state.LoanYears,
-                state.FirstRate
+                state.YearlyRates
             );
             var resultMessage = _fixedCalculator.FormatCalculationResult(
                 calculationResult,
-                state.LoanYears
+                state.YearlyRates
             );
             await _botClient.SendMessage(chatId, resultMessage);
             state.Reset();
