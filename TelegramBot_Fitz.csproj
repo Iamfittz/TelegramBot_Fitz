@@ -120,6 +120,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bot\Handlers\CalculationHandlers.cs" />
+    <Compile Include="Bot\Handlers\InputHandlers.cs" />
+    <Compile Include="Bot\Handlers\MessageHandlers.cs" />
     <Compile Include="Bot\UserState.cs" />
     <Compile Include="Bot\BotService.cs" />
     <Compile Include="Core\FloatingCalculator.cs" />
