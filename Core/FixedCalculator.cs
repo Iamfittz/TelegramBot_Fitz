@@ -21,21 +21,10 @@ namespace TelegramBot_Fitz.Core
             return loanAmount + totalInterest;
         }
 
-        public LoanCalculationResult CalculateLoan(decimal loanAmount, int loanYears, decimal interestRate, CalculationType calculationType)
+        public LoanCalculationResult CalculateLoan(decimal loanAmount, int loanYears, decimal interestRate)
         {
-            decimal totalInterest, totalPayment;
-
-            if (calculationType == CalculationType.FixedRate)
-            {
-                totalInterest = CalculateInterest(loanAmount, loanYears, interestRate);
-                totalPayment = CalculateTotalPayment(loanAmount, loanYears, interestRate);
-            }
-            else // FloatingRate
-            {
-                // Для плавающей ставки используем коэффициент 1.1
-                totalInterest = CalculateInterest(loanAmount, loanYears, interestRate * 1.1m);
-                totalPayment = loanAmount + totalInterest;
-            }
+            var totalInterest = CalculateInterest(loanAmount, loanYears, interestRate);
+            var totalPayment = CalculateTotalPayment(loanAmount, loanYears, interestRate);
 
             return new LoanCalculationResult
             {
