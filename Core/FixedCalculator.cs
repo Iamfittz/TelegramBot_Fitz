@@ -1,4 +1,5 @@
-﻿using TelegramBot_Fitz.Bot;
+﻿using System.Linq;
+using TelegramBot_Fitz.Bot;
 
 namespace TelegramBot_Fitz.Core
 {
@@ -10,21 +11,21 @@ namespace TelegramBot_Fitz.Core
 
     public class FixedRateLoanCalculator
     {
-        public decimal CalculateInterest(decimal amount, int years, decimal rate)
+        public decimal CalculateInterest(decimal amount, decimal[] yearlyRates)
         {
-            return amount * (rate / 100) * years;
+            decimal totalInterest = 0;
+            for(int i = 0; i < yearlyRates.Length; i++)
+            {
+                decimal yearlyInterest = amount * (yearlyRates[i] / 100);
+                totalInterest+= yearlyInterest;
+            }
+            return totalInterest;
         }
 
-        public decimal CalculateTotalPayment(decimal loanAmount, int loanYears, decimal interestRate)
+        public LoanCalculationResult CalculateLoan(decimal loanAmount, decimal[] yearlyRates)
         {
-            decimal totalInterest = CalculateInterest(loanAmount, loanYears, interestRate);
-            return loanAmount + totalInterest;
-        }
-
-        public LoanCalculationResult CalculateLoan(decimal loanAmount, int loanYears, decimal interestRate)
-        {
-            var totalInterest = CalculateInterest(loanAmount, loanYears, interestRate);
-            var totalPayment = CalculateTotalPayment(loanAmount, loanYears, interestRate);
+            var totalInterest = CalculateInterest(loanAmount, yearlyRates);
+            var totalPayment = loanAmount + totalInterest;
 
             return new LoanCalculationResult
             {
@@ -33,9 +34,13 @@ namespace TelegramBot_Fitz.Core
             };
         }
 
-        public string FormatCalculationResult(LoanCalculationResult result, int loanYears)
+        public string FormatCalculationResult(LoanCalculationResult result, decimal[] yearlyRates)
         {
-            return $"The total interest for {loanYears} years is: {result.TotalInterest:F2} USD.\n" +
+            var ratesByYear = string.Join("\n", yearlyRates.Select((rate, index) =>
+            $"Year {index + 1} rate: {rate}%"));
+            
+            return $"Rates by year:\n{ratesByYear}\n\n"+
+                   $"The total interest is:{result.TotalInterest:F2} USD.\n" +
                    $"The total payment is: {result.TotalPayment:F2} USD.";
         }
     }
