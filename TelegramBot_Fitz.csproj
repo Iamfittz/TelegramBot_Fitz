@@ -124,6 +124,7 @@
     <Compile Include="Bot\BotService.cs" />
     <Compile Include="Core\FloatingCalculator.cs" />
     <Compile Include="Core\FixedCalculator.cs" />
+    <Compile Include="Core\OISCalculator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
