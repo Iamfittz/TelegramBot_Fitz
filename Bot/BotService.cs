@@ -135,8 +135,37 @@ namespace TelegramBot_Fitz.Bot
                         break;
                     case "FixedRate":
                         state.CalculationType = CalculationType.FixedRate;
+
+                        // Создаем клавиатуру для выбора типа процентов
+                        var interestTypeKeyboard = new InlineKeyboardMarkup(new[]
+                        {
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("📊 Simple Interest", "SimpleInterest"),
+                    InlineKeyboardButton.WithCallbackData("📈 Compound Interest", "CompoundInterest")
+                }
+            });
                         await _botClient.SendMessage(chatId,
-                            "You selected Fixed Rate. Please enter the loan amount.");
+                    "Please select interest calculation method:\n\n" +
+                    "📊 Simple Interest: interest is calculated on the initial principal only\n" +
+                    "📈 Compound Interest: interest is calculated on the accumulated amount",
+                    replyMarkup: interestTypeKeyboard);
+                        break;
+
+                    // Добавляем новые case для обработки выбора типа процентов
+                    case "SimpleInterest":
+                        state.InterestCalculationType = InterestCalculationType.Simple;
+                        await _botClient.SendMessage(chatId,
+                            "You selected Simple Interest calculation.\n" +
+                            "Please enter the loan amount.");
+                        state.Step = 2;
+                        break;
+
+                    case "CompoundInterest":
+                        state.InterestCalculationType = InterestCalculationType.Compound;
+                        await _botClient.SendMessage(chatId,
+                            "You selected Compound Interest calculation.\n" +
+                            "Please enter the loan amount.");
                         state.Step = 2;
                         break;
                     case "FloatingRate":
@@ -144,6 +173,34 @@ namespace TelegramBot_Fitz.Bot
                         await _botClient.SendMessage(chatId,
                             "You selected Floating Rate. Please enter the loan amount.");
                         state.Step = 2;
+                        break;
+                    case "NewCalculation":
+                        await _messageHandlers.ShowRateTypeSelection(chatId);
+                        state.Step = 1;
+                        break;
+
+                    case "MainMenu":
+                        await _messageHandlers.ShowWelcomeMessage(chatId);
+                        state.Reset();
+                        break;
+
+                    case "Help":
+                        var helpMessage =
+                            "📌 Available commands:\n\n" +
+                            "/start - Start new calculation\n" +
+                            "/help - Show this help message\n\n" +
+                            "💡 Tips:\n" +
+                            "• You can calculate fixed or floating rates\n" +
+                            "• For fixed rates, you can set different rates for each year\n" +
+                            "• All amounts should be positive numbers\n\n" +
+                            "Need more help? Feel free to start a new calculation!";
+
+                        var returnKeyboard = new InlineKeyboardMarkup(new[]
+                        {
+                new[] { InlineKeyboardButton.WithCallbackData("🔙 Back to Main Menu", "MainMenu") }
+            });
+
+                        await _botClient.SendMessage(chatId, helpMessage, replyMarkup: returnKeyboard);
                         break;
                 }
             }

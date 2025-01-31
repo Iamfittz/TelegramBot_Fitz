@@ -1,4 +1,6 @@
-﻿namespace TelegramBot_Fitz.Bot
+﻿using TelegramBot_Fitz.Core;
+
+namespace TelegramBot_Fitz.Bot
 {
     public enum CalculationType
     {
@@ -19,6 +21,7 @@
         public decimal FirstRate { get; set; } 
         public decimal SecondRate { get; set; }
         public CalculationType CalculationType { get; set; } = CalculationType.None; // Тип расчета (Fixed или Floating)
+        public InterestCalculationType InterestCalculationType { get; set; }
 
         public void InitilizeYearlyRates()
         {
