@@ -65,8 +65,13 @@ namespace TelegramBot_Fitz.Bot
 
                     if (state.CalculationType == CalculationType.FixedRate)
                     {
-                        await _botClient.SendMessage(chatId, "Please enter the interest rate  for year 1 (e.g., 4 for 4%).");
+                        state.LoanYears = years;
+                        state.InitilizeYearlyRates();
+
+                        await _botClient.SendMessage(chatId,
+                            "Please enter the interest rate for year 1 (e.g., 4 for 4%).");
                         state.CurrentYear = 1;
+                        state.Step = 4;
                     }
                     else
                     {
@@ -83,41 +88,7 @@ namespace TelegramBot_Fitz.Bot
             }
         }
 
-        //public async Task HandleRateInput(long chatId, UserState state, string input)
-        //{
-        //    if (decimal.TryParse(input, out decimal rate) && rate > 0)
-        //    {
-        //        state.FirstRate = rate;
-
-        //        switch (state.CalculationType)
-        //        {
-        //            case CalculationType.FixedRate:
-        //                await _calculationHandlers.HandleFixedRateCalculation(chatId, state);
-        //                break;
-        //            case CalculationType.FloatingRate:
-        //                await _botClient.SendMessage(chatId,
-        //                    $"First 6-month period rate is set to {rate}%.\n" +
-        //                    "Please enter the interest rate for the second 6-month period:");
-        //                state.Step = 5;
-        //                break;
-        //            case CalculationType.OIS:
-        //                await _calculationHandlers.HandleOISCalculation(chatId, state);
-        //                break;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        var errorMessage = state.CalculationType == CalculationType.FixedRate
-        //            ? "Please enter a valid interest rate."
-        //            : state.CalculationType == CalculationType.FloatingRate
-        //            ? "Please enter a valid interest rate for the first 6-month period."
-        //            : state.CalculationType == CalculationType.OIS
-        //            ? "Please enter a valid overnight interest rate."
-        //            : "Please enter a valid rate.";
-
-        //        await _botClient.SendMessage(chatId, errorMessage);
-        //    }
-        //}
+        
         public async Task HandleRateInput(long chatId, UserState state, string input)
         {
             if (decimal.TryParse(input, out decimal rate) && rate > 0)
