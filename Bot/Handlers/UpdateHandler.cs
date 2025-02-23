@@ -94,10 +94,6 @@ namespace TelegramBot_Fitz.Bot.Handlers
             }
             return _userStates[chatId];
         }
-<<<<<<< Updated upstream
-        
-=======
-    
->>>>>>> Stashed changes
+
     }
 }
