@@ -3,59 +3,49 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TelegramBot_Fitz.Bot;
 
 namespace TelegramBot_Fitz.Core
 {
-    public class OISCalculationResult
+    public class OISCalculator : ILoanCalculator
     {
-        public decimal TotalInterest { get; set; }
-        public decimal TotalPayment { get; set; }
-        public decimal DailyRate { get; set; }
-    }
-        public class OISCalculator
+        public decimal CalculateInterest(UserState state)
         {
-            public decimal NotionalAmount { get; set; }
-            public int Days { get; set; }
-            public decimal OvernightRate { get; set; }
+            return CalculateInterest(state.LoanAmount, state.FirstRate, state.Days);
+        }
+        private decimal CalculateInterest(decimal amount, decimal rate, int days)
+        {
+            decimal dailyRate = rate / 360;
+            return amount * (dailyRate / 100) * days;
+        }
 
-            public decimal CalculateDailyRate()
+        public decimal CalculateTotalPayment(UserState state)
+        {
+            return state.LoanAmount + CalculateInterest(state.LoanAmount, state.FirstRate, state.Days);
+        }
+
+        public OISCalculationResult CalculateOIS(UserState state)
+        {
+            decimal dailyRate = state.FirstRate / 360;
+            decimal totalInterest = CalculateInterest(state.LoanAmount, state.FirstRate, state.Days);
+            decimal totalPayment = CalculateTotalPayment(state);
+
+            return new OISCalculationResult
             {
-                return OvernightRate / 360;
-            }
+                DailyRate = dailyRate,
+                TotalInterest = totalInterest,
+                TotalPayment = totalPayment
+            };
+        }
 
-            public decimal CalculateInterst()
-            {
-                decimal dailyRate = CalculateDailyRate();
-                return NotionalAmount * (dailyRate / 100) * Days;
-            }
-
-            public decimal CalculateTotalPayment()
-            {
-                return NotionalAmount + CalculateInterst();
-            }
-
-            public OISCalculationResult CalculateOIS()
-            {
-                decimal dailyRate = CalculateDailyRate();
-                decimal totalInterest = CalculateInterst();
-                decimal totalPayment = CalculateTotalPayment();
-
-                return new OISCalculationResult
-                {
-                    DailyRate = dailyRate,
-                    TotalInterest = totalInterest,
-                    TotalPayment = totalPayment
-                };
-            }
-
-            public string FormatCalculationResult(OISCalculationResult result)
-            {
-                return $"OIS Calculation Results:\n" +
+        public string FormatCalculationResult(OISCalculationResult result, UserState state)
+        {
+            return $"OIS Calculation Results:\n" +
                    $"Daily Rate: {result.DailyRate:F6}%\n" +
                    $"Total Interest: {result.TotalInterest:F2} USD\n" +
                    $"Total Payment: {result.TotalPayment:F2} USD\n" +
-                   $"Period: {Days} days\n" +
-                   $"Overnight Rate: {OvernightRate}%";
-            }
+                   $"Period: {state.Days} days\n" +
+                   $"Overnight Rate: {state.FirstRate}%";
         }
+    }
 }

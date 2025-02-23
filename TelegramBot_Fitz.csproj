@@ -9,6 +9,7 @@
     <RootNamespace>TelegramBot_Fitz</RootNamespace>
     <AssemblyName>TelegramBot_Fitz</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <LangVersion>9.0</LangVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
@@ -121,14 +122,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bot\Handlers\CalculationHandlers.cs" />
+    <Compile Include="Bot\Handlers\CallbackQueryHandler.cs" />
     <Compile Include="Bot\Handlers\InputHandlers.cs" />
     <Compile Include="Bot\Handlers\MessageHandlers.cs" />
+    <Compile Include="Bot\Handlers\UpdateHandler.cs" />
     <Compile Include="Bot\UserState.cs" />
     <Compile Include="Bot\BotService.cs" />
+    <Compile Include="Core\CalculatorFactory.cs" />
     <Compile Include="Core\FloatingCalculator.cs" />
     <Compile Include="Core\FixedCalculator.cs" />
+    <Compile Include="Core\ILoanCalculator.cs" />
     <Compile Include="Core\InterestCalculationType.cs" />
+    <Compile Include="Core\LoanCalculationResult.cs" />
+    <Compile Include="Core\OISCalculationResult.cs" />
     <Compile Include="Core\OISCalculator.cs" />
+    <Compile Include="Core\YearlyCalculation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

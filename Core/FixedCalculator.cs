@@ -3,34 +3,22 @@ using TelegramBot_Fitz.Bot;
 
 namespace TelegramBot_Fitz.Core
 {
-    public class LoanCalculationResult
+    public class FixedRateLoanCalculator : ILoanCalculator
     {
-        public decimal TotalInterest { get; set; }
-        public decimal TotalPayment { get; set; }
-
-        public YearlyCalculation[] YearlyCalculations { get; set; }
-    }
-
-    public class YearlyCalculation
-    {
-        public int Year { get; set; }
-        public decimal Rate { get; set; }
-        public decimal Interest { get; set; }
-        public decimal AccumulatedAmount { get; set; }
-    }
-
-        public class FixedRateLoanCalculator
-    {
+        public decimal CalculateInterest(UserState state)
+        {
+            return CalculateInterest(state.LoanAmount, state.YearlyRates, state.InterestCalculationType);
+        }
         public decimal CalculateInterest(decimal amount, decimal[] yearlyRates, InterestCalculationType calculationType)
         {
             decimal totalInterest = 0;
             decimal currentAmount = amount;
 
-            for(int i = 0; i < yearlyRates.Length; i++)
+            for (int i = 0; i < yearlyRates.Length; i++)
             {
                 decimal yearlyInterest;
 
-                if(calculationType == InterestCalculationType.Simple)
+                if (calculationType == InterestCalculationType.Simple)
                 {
                     yearlyInterest = amount * (yearlyRates[i] / 100);
                     totalInterest += yearlyInterest;
@@ -44,7 +32,6 @@ namespace TelegramBot_Fitz.Core
             }
             return totalInterest;
         }
-
         public LoanCalculationResult CalculateLoan(decimal loanAmount, decimal[] yearlyRates, InterestCalculationType calculationType)
         {
             var yearlyCalculations = new YearlyCalculation[yearlyRates.Length];
