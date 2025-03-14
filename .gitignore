@@ -365,3 +365,5 @@ FodyWeavers.xsd
 Dockerfile
 
 TG_Fitz/appsettings.js
+
+TG_Fitz/Data/AppDbContext.cs
