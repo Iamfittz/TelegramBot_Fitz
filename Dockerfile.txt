@@ -1,0 +1,9 @@
+# Используем .NET Runtime
+FROM mcr.microsoft.com/dotnet/runtime:7.0 AS base
+WORKDIR /app
+
+# Копируем файлы бота
+COPY out/ .
+
+# Запускаем бота
+CMD ["dotnet", "YourBot.dll"]
